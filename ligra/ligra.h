@@ -39,6 +39,7 @@
 #include "IO.h"
 #include "parseCommandLine.h"
 #include "gettime.h"
+#include "trace.hpp"
 using namespace std;
 
 //*****START FRAMEWORK*****
@@ -183,6 +184,7 @@ int parallel_main(int argc, char* argv[]) {
   bool compressed = P.getOptionValue("-c");
   bool binary = P.getOptionValue("-b");
   long rounds = P.getOptionLongValue("-rounds",3);
+  TRACE_OPEN("trace.log");
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =
@@ -232,5 +234,6 @@ int parallel_main(int argc, char* argv[]) {
       G.del();
     }
   }
+  TRACE_FINISH();
 }
 #endif
