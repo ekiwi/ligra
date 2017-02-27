@@ -176,6 +176,13 @@ inline bool cond_true (intT d) { return 1; }
 
 template<class vertex>
 void Compute(graph<vertex>&, commandLine);
+#ifndef PROJECT_NAME
+#define PROJECT_NAME Unknown
+#endif
+
+#define STR_(s) #s
+#define STR(s) STR_(s)
+
 
 int parallel_main(int argc, char* argv[]) {
   commandLine P(argc,argv," [-s] <inFile>");
@@ -184,7 +191,7 @@ int parallel_main(int argc, char* argv[]) {
   bool compressed = P.getOptionValue("-c");
   bool binary = P.getOptionValue("-b");
   long rounds = P.getOptionLongValue("-rounds",3);
-  TRACE_OPEN("trace.log");
+  TRACE_OPEN(STR(PROJECT_NAME) ".trace");
   if (compressed) {
     if (symmetric) {
       graph<compressedSymmetricVertex> G =

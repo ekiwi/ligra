@@ -29,6 +29,7 @@
 #include "blockRadixSort.h"
 #include "utils.h"
 #include "graph.h"
+#include "trace.hpp"
 using namespace std;
 
 typedef pair<uintE,uintE> intPair;
@@ -151,7 +152,9 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 
   long len = W.m -1;
   long n = atol(W.Strings[1]);
+  TRACE_LOAD_GRAPH_VERTEX_COUNT(n);
   long m = atol(W.Strings[2]);
+  TRACE_LOAD_GRAPH_EDGE_COUNT(m);
 #ifndef WEIGHTED
   if (len != n + m + 2) {
 #else

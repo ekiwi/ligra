@@ -44,7 +44,7 @@ ALL= encoder BFS BC BellmanFord Components Radii PageRank PageRankDelta BFSCC BF
 all: $(ALL)
 
 % : %.C $(COMMON)
-	$(PCC) $(PCFLAGS) -o $@ $< 
+	$(PCC) $(PCFLAGS) -DPROJECT_NAME=$@ -o $@ $<
 
 $(COMMON):
 	ln -s ../ligra/$@ .
