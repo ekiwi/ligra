@@ -24,10 +24,7 @@ static inline void trace_finish() {
 	trace_out.close();
 }
 
-template<typename T>
-static inline void trace_prop(const char* name, const T& value) {
-	trace_out << name << "=" << value << std::endl;
-}
+typedef uint64_t IdType;
 
 enum class DataType : uint8_t { Edge, Vertex, Property, Weight, Aux };
 static inline const char* to_string(DataType tt) {
@@ -50,10 +47,6 @@ static inline const char* to_string(AccessType tt) {
 	default: return "?";
 	}
 }
-
-typedef uint64_t IdType;
-
-
 
 template<typename T>
 static inline void TRACE_VERTEX_READ(IdType id, T* start_addr, long unsigned int size) {
@@ -233,18 +226,23 @@ static inline void TRACE_AUX_RW(IdType id, T* start_addr) {
 	trace_access(DataType::Aux, AccessType::ReadWrite, (id), start_addr);
 }
 
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr) {
+	trace_access(data, access, id, start_addr, sizeof(T));
+}
 
 
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr) {
+	trace_access(data, access, id1, id2, start_addr, sizeof(T));
+}
 
-// TODO: trace address range
+////////////////////////////////////////////////////////////////////////////////
+// trace format definition
+////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr, long unsigned int size) {
 	trace_out << to_string(data) << "," << id << "," << start_addr << "," << size << std::endl;
-}
-
-template<typename T>
-static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr) {
-	trace_out << to_string(data) << "," << id << "," << start_addr << "," << sizeof(T) << std::endl;
 }
 
 template<typename T>
@@ -253,9 +251,10 @@ static inline void trace_access(DataType data, AccessType access, IdType id1, Id
 }
 
 template<typename T>
-static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr) {
-	trace_out << to_string(data) << ",<" << id1 << " " << id2 << ">," << start_addr << "," << sizeof(T) << std::endl;
+static inline void trace_prop(const char* name, const T& value) {
+	trace_out << name << "=" << value << std::endl;
 }
+
 
 
 #else
