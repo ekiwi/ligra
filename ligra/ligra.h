@@ -113,7 +113,9 @@ vertexSubset edgeMap(graph<vertex> GA, vertexSubset &V, F f, intT threshold = -1
   V.toSparse();
   frontierVertices = newA(vertex,m);
   {parallel_for (long i=0; i < m; i++){
-    vertex v = G[V.s[i]];
+    const auto vertex_id = V.s[i];
+    TRACE_VERTEX_READ(vertex_id, &G[vertex_id]);
+    vertex v = G[vertex_id];
     degrees[i] = v.getOutDegree();
     frontierVertices[i] = v;
     }}

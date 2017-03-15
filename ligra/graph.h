@@ -40,7 +40,7 @@ graph(vertex* VV, long nn, long mm, Deletable* DD, uintE* _flags) : V(VV), n(nn)
     if ((sizeof(vertex) == sizeof(asymmetricVertex)) || 
         (sizeof(vertex) == sizeof(compressedAsymmetricVertex))) {
       parallel_for(long i=0;i<n;i++) {
-		TRACE_VERTEX_RW(i);
+        TRACE_VERTEX_RW(i, &V[i]);
         V[i].flipEdges();
       }
       transposed = !transposed;

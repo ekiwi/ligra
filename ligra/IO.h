@@ -174,6 +174,8 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
   {parallel_for(long i=0; i < n; i++) offsets[i] = atol(W.Strings[i + 3]);}
   {parallel_for(long i=0; i<m; i++) {
 #ifndef WEIGHTED
+      // TODO: figure out how to map this
+      //TRACE_EDGE_WRITE(i, &edges[i]);
       edges[i] = atol(W.Strings[i+n+3]); 
 #else
       edges[2*i] = atol(W.Strings[i+n+3]); 
@@ -187,6 +189,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
   {parallel_for (uintT i=0; i < n; i++) {
     uintT o = offsets[i];
     uintT l = ((i == n-1) ? m : offsets[i+1])-offsets[i];
+    TRACE_VERTEX_WRITE(i, &v[i]);
     v[i].setOutDegree(l); 
 #ifndef WEIGHTED
     v[i].setOutNeighbors(edges+o);     
@@ -207,6 +210,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
 #endif
     {parallel_for(long i=0;i<n;i++){
       uintT o = offsets[i];
+      TRACE_VERTEX_READ(i, &v[i]);
       for(uintT j=0;j<v[i].getOutDegree();j++){	  
 #ifndef WEIGHTED
 	temp[o+j] = make_pair(v[i].getOutNeighbor(j),i);
@@ -251,6 +255,7 @@ graph<vertex> readGraphFromFile(char* fname, bool isSymmetric) {
     {parallel_for(long i=0;i<n;i++){
       uintT o = tOffsets[i];
       uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
+      TRACE_VERTEX_WRITE(i, &v[i]);
       v[i].setInDegree(l);
 #ifndef WEIGHTED
       v[i].setInNeighbors(inEdges+o);
@@ -328,6 +333,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
   {parallel_for(long i=0;i<n;i++) {
     uintT o = offsets[i];
     uintT l = ((i==n-1) ? m : offsets[i+1])-offsets[i];
+      TRACE_VERTEX_WRITE(i, &v[i]);
       v[i].setOutDegree(l); 
 #ifndef WEIGHTED
       v[i].setOutNeighbors((uintE*)edges+o); 
@@ -386,6 +392,7 @@ graph<vertex> readGraphFromBinary(char* iFile, bool isSymmetric) {
     {parallel_for(long i=0;i<n;i++){
       uintT o = tOffsets[i];
       uintT l = ((i == n-1) ? m : tOffsets[i+1])-tOffsets[i];
+      TRACE_VERTEX_WRITE(i, &v[i]);
       v[i].setInDegree(l);
 #ifndef WEIGHTED
       v[i].setInNeighbors((uintE*)inEdges+o);
@@ -490,6 +497,7 @@ graph<vertex> readCompressedGraph(char* fname, bool isSymmetric) {
   parallel_for(long i=0;i<n;i++) {
     long o = offsets[i];
     uintT d = Degrees[i];
+    TRACE_VERTEX_WRITE(i, &V[i]);
     V[i].setOutDegree(d);
     V[i].setOutNeighbors(edges+o);
   }
@@ -498,6 +506,7 @@ graph<vertex> readCompressedGraph(char* fname, bool isSymmetric) {
     parallel_for(long i=0;i<n;i++) {
       long o = inOffsets[i];
       uintT d = inDegrees[i];
+      TRACE_VERTEX_WRITE(i, &V[i]);
       V[i].setInDegree(d);
       V[i].setInNeighbors(inEdges+o);
     }

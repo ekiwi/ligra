@@ -27,16 +27,16 @@ struct BFS_F {
   uintE* Parents;
   BFS_F(uintE* _Parents) : Parents(_Parents) {}
   inline bool update (uintE s, uintE d) { //Update
-    TRACE_PROP_READ(d);
-    if(Parents[d] == UINT_E_MAX) { TRACE_PROP_WRITE(d); Parents[d] = s; return 1; }
+    TRACE_PROP_READ(d, &Parents[d]);
+    if(Parents[d] == UINT_E_MAX) { TRACE_PROP_WRITE(d, &Parents[d]); Parents[d] = s; return 1; }
     else return 0;
   }
   inline bool updateAtomic (uintE s, uintE d){ //atomic version of Update
-    TRACE_PROP_RW(d);
+    TRACE_PROP_RW(d, &Parents[d]);
     return (CAS(&Parents[d],UINT_E_MAX,s));
   }
   //cond function checks if vertex has been visited yet
-  inline bool cond (uintE d) { TRACE_PROP_READ(d); return (Parents[d] == UINT_E_MAX); }
+  inline bool cond (uintE d) { TRACE_PROP_READ(d, &Parents[d]); return (Parents[d] == UINT_E_MAX); }
 };
 
 template <class vertex>
@@ -45,8 +45,8 @@ void Compute(graph<vertex>& GA, commandLine P) {
   long n = GA.n;
   //creates Parents array, initialized to all -1, except for start
   uintE* Parents = newA(uintE,n);
-  parallel_for(long i=0;i<n;i++) {TRACE_PROP_WRITE(i); Parents[i] = UINT_E_MAX; }
-  Parents[start] = start; TRACE_PROP_WRITE(start);
+  parallel_for(long i=0;i<n;i++) {TRACE_PROP_WRITE(i, &Parents[i]); Parents[i] = UINT_E_MAX; }
+  Parents[start] = start; TRACE_PROP_WRITE(start, &Parents[start]);
   vertexSubset Frontier(n,start); //creates initial frontier
   while(!Frontier.isEmpty()){ //loop until frontier is empty
     vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents));    
