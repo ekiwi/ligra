@@ -5,6 +5,9 @@
 
 #if defined(DO_TRACE)
 
+// constant settings
+static constexpr bool EmitHumanReadable = false;
+
 // essential macros
 #define TRACE_OPEN(filename) trace_open(filename)
 #define TRACE_FINISH() trace_finish()
@@ -24,7 +27,7 @@ static inline void trace_finish() {
 	trace_out.close();
 }
 
-typedef uint64_t IdType;
+typedef uint32_t IdType; // goes up to about 4 billion
 
 enum class DataType : uint8_t { Edge, Vertex, Property, Weight, Aux };
 static inline const char* to_string(DataType tt) {
@@ -240,21 +243,52 @@ static inline void trace_access(DataType data, AccessType access, IdType id1, Id
 ////////////////////////////////////////////////////////////////////////////////
 // trace format definition
 ////////////////////////////////////////////////////////////////////////////////
+static inline void dump_entry(DataType data, AccessType access, IdType id1, IdType id2, void* start_addr, uint16_t size);
+
 template<typename T>
 static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr, long unsigned int size) {
-	trace_out << to_string(data) << "," << id << "," << start_addr << "," << size << std::endl;
+	static_assert(sizeof(T*) == sizeof(void*), "all pointers need to be of equal size");
+	if(EmitHumanReadable) {
+		trace_out << to_string(data) << "," << id << "," << start_addr << "," << size << std::endl;
+	} else {
+		dump_entry(data, access, id, 0, start_addr, size);
+	}
 }
 
 template<typename T>
 static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr, long unsigned int size) {
-	trace_out << to_string(data) << ",<" << id1 << " " << id2 << ">," << start_addr << "," << size << std::endl;
+	static_assert(sizeof(T*) == sizeof(void*), "all pointers need to be of equal size");
+	if(EmitHumanReadable) {
+		trace_out << to_string(data) << ",<" << id1 << " " << id2 << ">," << start_addr << "," << size << std::endl;
+	} else {
+		dump_entry(data, access, id1, id2, start_addr, size);
+	}
 }
 
 template<typename T>
 static inline void trace_prop(const char* name, const T& value) {
-	trace_out << name << "=" << value << std::endl;
+	if(EmitHumanReadable) {
+		trace_out << name << "=" << value << std::endl;
+	} else {
+		// TODO: currently ignored for binary, do we need this info?
+	}
 }
 
+
+// binary
+struct Entry {
+	void*  start_addr;
+	IdType id1;
+	IdType id2;
+	uint16_t size;
+	DataType data;
+	AccessType access;
+} __attribute__((packed));
+
+static inline void dump_entry(DataType data, AccessType access, IdType id1, IdType id2, void* start_addr, uint16_t size) {
+	Entry e{ start_addr, id1, id2, size, data, access };
+	trace_out.write(reinterpret_cast<char*>(&e), sizeof(Entry));
+}
 
 
 #else
