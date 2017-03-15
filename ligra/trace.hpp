@@ -9,15 +9,21 @@
 #define TRACE_OPEN(filename) trace_open(filename)
 #define TRACE_FINISH() trace_finish()
 #define TRACE_PROP(name, value) trace_prop((name), (value))
-#define TRACE_VERTEX_READ(id)  trace_access(DataType::Vertex,   AccessType::Read, (id))
-#define TRACE_VERTEX_RW(id)    trace_access(DataType::Vertex,   AccessType::ReadWrite, (id))
-#define TRACE_VERTEX_WRITE(id) trace_access(DataType::Vertex,   AccessType::Write, (id))
-#define TRACE_EDGE_READ(id)    trace_access(DataType::Edge,     AccessType::Read, (id))
-#define TRACE_EDGE_WRITE(id)   trace_access(DataType::Edge,     AccessType::Write, (id))
-#define TRACE_EDGE_RW(id)      trace_access(DataType::Edge,     AccessType::ReadWrite, (id))
-#define TRACE_PROP_READ(id)    trace_access(DataType::Property, AccessType::Read, (id))
-#define TRACE_PROP_WRITE(id)   trace_access(DataType::Property, AccessType::Write, (id))
-#define TRACE_PROP_RW(id)      trace_access(DataType::Property, AccessType::ReadWrite, (id))
+#define TRACE_VERTEX_READ(id,start_addr,size)       trace_access(DataType::Vertex,   AccessType::Read, (id),start_addr,size)
+#define TRACE_VERTEX_RW(id,start_addr,size)         trace_access(DataType::Vertex,   AccessType::ReadWrite, (id),start_addr,size)
+#define TRACE_VERTEX_WRITE(id,start_addr,size)      trace_access(DataType::Vertex,   AccessType::Write, (id),start_addr,size)
+#define TRACE_EDGE_READ(id1,id2,start_addr,size)    trace_access(DataType::Edge,     AccessType::Read, id1,id2,start_addr,size)
+#define TRACE_EDGE_WRITE(id1,id2,start_addr,size)   trace_access(DataType::Edge,     AccessType::Write, id1,id2,start_addr,size)
+#define TRACE_EDGE_RW(id1,id2,start_addr,size)      trace_access(DataType::Edge,     AccessType::ReadWrite, id1,id2,start_addr,size)
+#define TRACE_WEIGHT_READ(id1,id2,start_addr,size)  trace_access(DataType::Weight,   AccessType::Read, id1,id2,start_addr,size)
+#define TRACE_WEIGHT_WRITE(id1,id2,start_addr,size) trace_access(DataType::Weight,   AccessType::Write, id1,id2,start_addr,size)
+#define TRACE_WEIGHT_RW(id1,id2,start_addr,size)    trace_access(DataType::Weight,   AccessType::ReadWrite, id1,id2,start_addr,size)
+#define TRACE_PROP_READ(id,start_addr,size)         trace_access(DataType::Property, AccessType::Read, (id),start_addr,size)
+#define TRACE_PROP_WRITE(id,start_addr,size)        trace_access(DataType::Property, AccessType::Write, (id),start_addr,size)
+#define TRACE_PROP_RW(id,start_addr,size)           trace_access(DataType::Property, AccessType::ReadWrite, (id),start_addr,size)
+#define TRACE_AUX_READ(id,start_addr,size)          trace_access(DataType::Aux, AccessType::Read, (id),start_addr,size)
+#define TRACE_AUX_WRITE(id,start_addr,size)         trace_access(DataType::Aux, AccessType::Write, (id),start_addr,size)
+#define TRACE_AUX_RW(id,start_addr,size)            trace_access(DataType::Aux, AccessType::ReadWrite, (id),start_addr,size)
 
 #include <iostream>
 #include <fstream>
@@ -38,27 +44,45 @@ static inline void trace_prop(const char* name, const T& value) {
 	trace_out << name << "=" << value << std::endl;
 }
 
-enum class DataType   : uint8_t { Edge, Vertex, Property };
+enum class DataType : uint8_t { Edge, Vertex, Property, Weight, Aux };
 static inline const char* to_string(DataType tt) {
-	switch(tt) {
+	switch (tt) {
 	case DataType::Edge: return "E";
 	case DataType::Vertex: return "V";
 	case DataType::Property: return "P";
+	case DataType::Weight: return "W";
+	case DataType::Aux: return "A";
 	default: return "?";
-}}
+	}
+}
 
 enum class AccessType : uint8_t { Read, ReadWrite, Write };
 static inline const char* to_string(AccessType tt) {
-	switch(tt) {
+	switch (tt) {
 	case AccessType::Read: return "r";
 	case AccessType::ReadWrite: return "rw";
 	case AccessType::Write: return "w";
 	default: return "?";
-}}
-using IdType = uint64_t;
+	}
+}
+
+typedef uint64_t IdType;
 // TODO: trace address range
-static inline void trace_access(DataType data, AccessType access, IdType id) {
-	trace_out << to_string(data) << "," << to_string(access) << "," << id << std::endl;
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr, long unsigned int size) {
+	//trace_out << to_string(data) << "," << to_string(access) << "," << id << "," << start_addr << "," << size << std::endl;
+	trace_out << to_string(data) << "," << id << "," << start_addr << "," << size << std::endl;
+}
+
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr) {
+	//trace_out << to_string(data) << "," << to_string(access) << "," << id << "," << start_addr << "," << size << std::endl;
+	trace_out << to_string(data) << "," << id << "," << start_addr << "," << sizeof(T) << std::endl;
+}
+
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr, long unsigned int size) {
+	trace_out << to_string(data) << ",<" << id1 << " " << id2 << ">," << start_addr << "," << size << std::endl;
 }
 
 #else
