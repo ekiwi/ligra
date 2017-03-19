@@ -1,6 +1,7 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 #include "vertexSubset.h"
+#include "trace.hpp"
 using namespace std;
 
 namespace decode_uncompressed {
@@ -87,6 +88,9 @@ namespace decode_uncompressed {
 }
 
 struct symmetricVertex {
+#if defined(DO_TRACE)
+  uintT id;
+#endif
 #ifndef WEIGHTED
   uintE* neighbors;
 #else 
@@ -94,17 +98,26 @@ struct symmetricVertex {
 #endif
   uintT degree;
   void del() {free(neighbors); }
+#if defined(DO_TRACE)
 #ifndef WEIGHTED
-symmetricVertex(uintE* n, uintT d) 
+symmetricVertex(uintT id, uintE* n, uintT d)
 #else 
-symmetricVertex(intE* n, uintT d) 
+symmetricVertex(uintT id, intE* n, uintT d)
+#endif
+: id(id), neighbors(n), degree(d) {}
+#else
+#ifndef WEIGHTED
+symmetricVertex(uintE* n, uintT d)
+#else
+symmetricVertex(intE* n, uintT d)
 #endif
 : neighbors(n), degree(d) {}
+#endif
 #ifndef WEIGHTED
   uintE* getInNeighbors () { return neighbors; }
   uintE* getOutNeighbors () { return neighbors; }
-  uintE getInNeighbor(uintT j) { return neighbors[j]; }
-  uintE getOutNeighbor(uintT j) { return neighbors[j]; }
+  uintE getInNeighbor(uintT j) { TRACE_EDGE_READ(id, neighbors[j], &neighbors[j]); return neighbors[j]; }
+  uintE getOutNeighbor(uintT j) { TRACE_EDGE_READ(id, neighbors[j], &neighbors[j]); return neighbors[j]; }
   void setInNeighbors(uintE* _i) { neighbors = _i; }
   void setOutNeighbors(uintE* _i) { neighbors = _i; }
 #else
@@ -112,18 +125,18 @@ symmetricVertex(intE* n, uintT d)
   //so size of neighbor list is twice the degree
   intE* getInNeighbors () { return neighbors; }
   intE* getOutNeighbors () { return neighbors; }
-  intE getInNeighbor(intT j) { return neighbors[2*j]; }
-  intE getOutNeighbor(intT j) { return neighbors[2*j]; }
-  intE getInWeight(intT j) { return neighbors[2*j+1]; }
-  intE getOutWeight(intT j) { return neighbors[2*j+1]; }
+  intE getInNeighbor(intT j) { TRACE_EDGE_READ(id, neighbors[2*j], &neighbors[2*j]); return neighbors[2*j]; }
+  intE getOutNeighbor(intT j) { TRACE_EDGE_READ(id, neighbors[2*j], &neighbors[2*j]); return neighbors[2*j]; }
+  intE getInWeight(intT j) { TRACE_EDGE_READ(id, neighbors[2*j], &neighbors[2*j+1]); return neighbors[2*j+1]; }
+  intE getOutWeight(intT j) { TRACE_EDGE_READ(id, neighbors[2*j], &neighbors[2*j+1]); return neighbors[2*j+1]; }
   void setInNeighbors(intE* _i) { neighbors = _i; }
   void setOutNeighbors(intE* _i) { neighbors = _i; }
 #endif
 
-  uintT getInDegree() { return degree; }
-  uintT getOutDegree() { return degree; }
-  void setInDegree(uintT _d) { degree = _d; }
-  void setOutDegree(uintT _d) { degree = _d; }
+  uintT getInDegree() { TRACE_VERTEX_READ(id, &this->degree); return degree; }
+  uintT getOutDegree() { TRACE_VERTEX_READ(id, &this->degree); return degree; }
+  void setInDegree(uintT _d) { TRACE_VERTEX_WRITE(id, &this->degree); degree = _d; }
+  void setOutDegree(uintT _d) { TRACE_VERTEX_WRITE(id, &this->degree); degree = _d; }
   void flipEdges() {}
 
   template <class F>
@@ -143,6 +156,9 @@ symmetricVertex(intE* n, uintT d)
 };
 
 struct asymmetricVertex {
+#if defined(DO_TRACE)
+  uintT id;
+#endif
 #ifndef WEIGHTED
   uintE* inNeighbors, *outNeighbors;
 #else
@@ -151,35 +167,44 @@ struct asymmetricVertex {
   uintT outDegree;
   uintT inDegree;
   void del() {free(inNeighbors); free(outNeighbors);}
+#if defined(DO_TRACE)
 #ifndef WEIGHTED
-asymmetricVertex(uintE* iN, uintE* oN, uintT id, uintT od) 
+asymmetricVertex(uintT id, uintE* iN, uintE* oN, uintT in, uintT od)
 #else
-asymmetricVertex(intE* iN, intE* oN, uintT id, uintT od) 
+asymmetricVertex(uintT id, intE* iN, intE* oN, uintT in, uintT od)
 #endif
-: inNeighbors(iN), outNeighbors(oN), inDegree(id), outDegree(od) {}
+: id(id), inNeighbors(iN), outNeighbors(oN), inDegree(in), outDegree(od) {}
+#else
+#ifndef WEIGHTED
+asymmetricVertex(uintE* iN, uintE* oN, uintT in, uintT od)
+#else
+asymmetricVertex(intE* iN, intE* oN, uintT in, uintT od)
+#endif
+: inNeighbors(iN), outNeighbors(oN), inDegree(in), outDegree(od) {}
+#endif
 #ifndef WEIGHTED
   uintE* getInNeighbors () { return inNeighbors; }
   uintE* getOutNeighbors () { return outNeighbors; }
-  uintE getInNeighbor(uintT j) { return inNeighbors[j]; }
-  uintE getOutNeighbor(uintT j) { return outNeighbors[j]; }
+  uintE getInNeighbor(uintT j) {  TRACE_EDGE_READ(id, inNeighbors[j], &inNeighbors[j]); return inNeighbors[j]; }
+  uintE getOutNeighbor(uintT j) { TRACE_EDGE_READ(id, outNeighbors[j], &outNeighbors[j]); return outNeighbors[j]; }
   void setInNeighbors(uintE* _i) { inNeighbors = _i; }
   void setOutNeighbors(uintE* _i) { outNeighbors = _i; }
 #else 
   intE* getInNeighbors () { return inNeighbors; }
   intE* getOutNeighbors () { return outNeighbors; }
-  intE getInNeighbor(uintT j) { return inNeighbors[2*j]; }
-  intE getOutNeighbor(uintT j) { return outNeighbors[2*j]; }
-  intE getInWeight(uintT j) { return inNeighbors[2*j+1]; }
-  intE getOutWeight(uintT j) { return outNeighbors[2*j+1]; }
+  intE getInNeighbor(uintT j) {  TRACE_EDGE_READ(id, inNeighbors[2*j], &inNeighbors[2*j]);   return inNeighbors[2*j]; }
+  intE getOutNeighbor(uintT j) { TRACE_EDGE_READ(id, outNeighbors[2*j], &outNeighbors[2*j]); return outNeighbors[2*j]; }
+  intE getInWeight(uintT j) {  TRACE_EDGE_READ(id, inNeighbors[2*j], &inNeighbors[2*j+1]);   return inNeighbors[2*j+1]; }
+  intE getOutWeight(uintT j) { TRACE_EDGE_READ(id, outNeighbors[2*j], &outNeighbors[2*j+1]); return outNeighbors[2*j+1]; }
   void setInNeighbors(intE* _i) { inNeighbors = _i; }
   void setOutNeighbors(intE* _i) { outNeighbors = _i; }
 #endif
 
-  uintT getInDegree() { return inDegree; }
-  uintT getOutDegree() { return outDegree; }
-  void setInDegree(uintT _d) { inDegree = _d; }
-  void setOutDegree(uintT _d) { outDegree = _d; }
-  void flipEdges() { swap(inNeighbors,outNeighbors); swap(inDegree,outDegree); }
+  uintT getInDegree() { TRACE_VERTEX_READ(id, &this->inDegree); return inDegree; }
+  uintT getOutDegree() { TRACE_VERTEX_READ(id, &this->outDegree); return outDegree; }
+  void setInDegree(uintT _d) {  TRACE_VERTEX_WRITE(id, &this->inDegree); inDegree = _d; }
+  void setOutDegree(uintT _d) { TRACE_VERTEX_WRITE(id, &this->outDegree); outDegree = _d; }
+  void flipEdges() { TRACE_VERTEX_RW(id, this); swap(inNeighbors,outNeighbors); swap(inDegree,outDegree); }
 
   template <class F>
   inline void decodeInNghBreakEarly(long i, bool* vertexSubset, F &f, bool* next, bool parallel = 0) {
