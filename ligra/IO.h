@@ -35,6 +35,7 @@ using namespace std;
 typedef pair<uintE,uintE> intPair;
 typedef pair<uintE, pair<uintE,intE> > intTriple;
 
+
 template <class E>
 struct pairFirstCmp {
   bool operator() (pair<uintE,E> a, pair<uintE,E> b) {

@@ -29,7 +29,7 @@ static inline void trace_finish() {
 
 typedef uint32_t IdType; // goes up to about 4 billion
 
-enum class DataType : uint8_t { Edge, Vertex, Property, Weight, Aux };
+enum class DataType : uint8_t { Edge, Vertex, Property, Weight, Aux, Marker };
 static inline const char* to_string(DataType tt) {
 	switch (tt) {
 	case DataType::Edge: return "E";
@@ -37,6 +37,7 @@ static inline const char* to_string(DataType tt) {
 	case DataType::Property: return "P";
 	case DataType::Weight: return "W";
 	case DataType::Aux: return "A";
+	case DataType::Marker: return "M";
 	default: return "?";
 	}
 }
@@ -49,6 +50,22 @@ static inline const char* to_string(AccessType tt) {
 	case AccessType::Write: return "w";
 	default: return "?";
 	}
+}
+
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr, long unsigned int size);
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr, long unsigned int size);
+template<typename T>
+static inline void trace_prop(const char* name, const T& value);
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr) {
+	trace_access(data, access, id, start_addr, sizeof(T));
+}
+
+template<typename T>
+static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr) {
+	trace_access(data, access, id1, id2, start_addr, sizeof(T));
 }
 
 template<typename T>
@@ -229,15 +246,8 @@ static inline void TRACE_AUX_RW(IdType id, T* start_addr) {
 	trace_access(DataType::Aux, AccessType::ReadWrite, (id), start_addr);
 }
 
-template<typename T>
-static inline void trace_access(DataType data, AccessType access, IdType id, T* start_addr) {
-	trace_access(data, access, id, start_addr, sizeof(T));
-}
-
-
-template<typename T>
-static inline void trace_access(DataType data, AccessType access, IdType id1, IdType id2, T* start_addr) {
-	trace_access(data, access, id1, id2, start_addr, sizeof(T));
+static inline void TRACE_MARKER(IdType id) {
+	trace_access(DataType::Marker, AccessType::ReadWrite, id, (void*)nullptr, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

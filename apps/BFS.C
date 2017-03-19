@@ -52,6 +52,7 @@ void Compute(graph<vertex>& GA, commandLine P) {
     vertexSubset output = edgeMap(GA, Frontier, BFS_F(Parents));    
     Frontier.del();
     Frontier = output; //set new frontier
+	TRACE_MARKER(0);
   } 
   Frontier.del();
   free(Parents); 
